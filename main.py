@@ -1,11 +1,12 @@
 import pyaudio
 
 
-
 FRAMES_PER_BUFFER = 1024
 
 def main():
-	p = pyaudio.Audio(
+	pyaudio_object = pyaudio.PyAudio()
+
+	pyaudio_object.open(
 		format=pyaudio.paFloat32, 
 		channel=1, 
 		rate=44100, 
@@ -15,8 +16,6 @@ def main():
 
 	while True:
 		pass
-
-
 
 if __name__ == '__main__':
 	main()
