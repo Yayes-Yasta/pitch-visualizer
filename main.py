@@ -6,7 +6,7 @@ import aubio
 
 FORMAT = pyaudio.paFloat32
 SAMPLE_RATE = 44100 # Hz
-FRAMES_PER_BUFFER = 5456
+FRAMES_PER_BUFFER = 2048 # number of frames per stream reading
 
 def main():
 	pyaudio_object = pyaudio.PyAudio()
@@ -26,7 +26,7 @@ def main():
 		audio_array = np.frombuffer(data, dtype=np.float32)
 
 
-		detect_pitch(audio_array, SAMPLE_RATE, FRAMES_PER_BUFFER)
-
+		detect_pitch(audio_array, SAMPLE_RATE)
+		
 if __name__ == '__main__':
 	main()

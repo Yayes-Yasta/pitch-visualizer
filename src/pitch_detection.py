@@ -2,28 +2,29 @@ import aubio
 import numpy as np
 
 
-PITCH_TOLERANCE = 0.8 # minimum confidence for pitch candidates
-HOP_SIZE = 512 # number of samples overlapping between two consecutive frames
-WIN_SIZE = 4096
+PITCH_TOLERANCE = 0.7 # minimum confidence for pitch candidates
+HOP_SIZE = 512 # number of samples for each pitch calculation
 
-def detect_pitch(audio_array, sample_rate, buffer_size):
-	print("detect_pitch called")
+def detect_pitch(audio_array, sample_rate):
+	"""Estimates and returns the pitch of a raw audio_array"""
 
 	# create pitch object
-	pitch_o = aubio.pitch("yin", samplerate=sample_rate)
+	pitch_o = aubio.pitch("yin", hop_size=HOP_SIZE, samplerate=sample_rate)
+	pitch_o.set_tolerance(PITCH_TOLERANCE)
 
-	x = audio_array
-	# pad end of array with zeroes
-	print(x.shape)
-	pad_length = pitch_o.hop_size - x.shape[0] % pitch_o.hop_size
-	x_padded = np.pad(x, (0, pad_length), 'constant', constant_values=0)
-	# to reshape it in blocks of hop_size
-	x_padded = x_padded.reshape(-1, pitch_o.hop_size)
+	# pad end of array with zeroes to make the length a multiple of hop_size
+	array_length = audio_array.shape[0]
+	pad_length = HOP_SIZE - array_length % HOP_SIZE
+	padded_array = np.pad(audio_array, (0, pad_length), constant_values=0)
 
-	# input array should be of type aubio.float_type (defaults to float32)
-	x_padded = x_padded.astype(aubio.float_type)
+	# reshape it into blocks of hop_size
+	frame_array = padded_array.reshape(-1, pitch_o.hop_size)
+	frame_count = frame_array.shape[0]
 
-	for frame, i in zip(x_padded, range(len(x_padded))):
-	    time_str = "%.3f" % (i * pitch_o.hop_size/float(sample_rate))
-	    pitch_candidate = pitch_o(frame)[0]
-	    print (time_str, "%.3f" % pitch_candidate)
+	# collect all pitch calculations
+	pitch_profile = np.empty(frame_count) 
+
+	for frame, i in zip(frame_array, range(frame_count)):
+	    pitch_profile[i] = pitch_o(frame) # calculate the pitch
+
+	return np.median(pitch_profile)
