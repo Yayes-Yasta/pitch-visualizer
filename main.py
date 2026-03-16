@@ -1,11 +1,12 @@
 import pyaudio
 import numpy as np
-import matplotlib.pyplot as plt
+from src.pitch_detection import detect_pitch
+import aubio
 
 
 FORMAT = pyaudio.paFloat32
 SAMPLE_RATE = 44100 # Hz
-FRAMES_PER_BUFFER = 1024
+FRAMES_PER_BUFFER = 5456
 
 def main():
 	pyaudio_object = pyaudio.PyAudio()
@@ -22,7 +23,10 @@ def main():
 		# read the sound waves from the microphone
 		data = stream.read(FRAMES_PER_BUFFER)		
 		# create the array to be used to process the audio
-		frames = np.frombuffer(data, dtype=np.float32) 
+		audio_array = np.frombuffer(data, dtype=np.float32)
+
+
+		detect_pitch(audio_array, SAMPLE_RATE, FRAMES_PER_BUFFER)
 
 if __name__ == '__main__':
 	main()
