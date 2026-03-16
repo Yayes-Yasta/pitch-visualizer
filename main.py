@@ -25,7 +25,6 @@ def main():
 		# create the array to be used to process the audio
 		audio_array = np.frombuffer(data, dtype=np.float32)
 
-
 		detect_pitch(audio_array, SAMPLE_RATE)
 		
 if __name__ == '__main__':
