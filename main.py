@@ -4,7 +4,6 @@ from src.pitch_detection import detect_pitch
 from src.display_content import Display
 import aubio
 import pygame
-import time
 
 
 FORMAT = pyaudio.paFloat32

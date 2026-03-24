@@ -5,7 +5,7 @@ PATH = "sing.mid"
 
 class MidiParser:
 	"""This class is an iterator that reads a midi file 
-	and calculates the time at which instructyions occur"""
+	and calculates the time at which instructions occur"""
 
 	def __init__(self):
 		"""Prepares an array of all raw instructions parsed through mido."""
@@ -24,7 +24,7 @@ class MidiParser:
 		return self
 
 	def __next__(self):
-		"""Returns needed inormation about the next instruction."""
+		"""Returns needed information about the next instruction."""
 
 		instruction = self.instructions.pop(0)
 
