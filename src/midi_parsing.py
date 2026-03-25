@@ -1,7 +1,7 @@
 import mido
 
 
-PATH = "sing.mid"
+PATH = "mario.midi"
 
 class MidiParser:
 	"""This class is an iterator that reads a midi file 
@@ -24,7 +24,7 @@ class MidiParser:
 		return self
 
 	def __next__(self):
-		"""Returns needed information about the next instruction."""
+		"""Returns needed information about the next instruction"""
 
 		instruction = self.instructions.pop(0)
 

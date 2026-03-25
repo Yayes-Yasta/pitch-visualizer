@@ -1,0 +1,128 @@
+import pygame
+from src.midi_parsing import MidiParser
+
+
+BACKGROUND_COLOR = (0, 0, 0)
+
+BAR_COLOR = (255, 255, 255)
+
+# marker for the microphone pitch
+MIC_PITCH_COLOR = (0, 0, 255)
+MIC_PITCH_RADIUS = 5
+
+BASE_LINE_Y = 650
+
+PIXELS_PER_NOTE = 10
+PIXELS_PER_SECOND = 100
+
+class Game:
+	"""This class is used to handle the rhythm game logic"""
+
+	def __init__(self, screen, instructions):
+		"""Takes in the  pygame display object and 
+		the midi instructions to be displayed on the screen"""
+
+		self.screen = screen
+		self.width, self.height = self.screen.get_size()
+
+		self.instructions = instructions
+
+		self.current_notes = []
+		self.midway_notes = {}
+
+		self.midi_instructions = instructions
+		self.next_instruction = next(instructions)
+
+		self.done = False
+
+	def update(self, mic_pitch, time):
+		"""Handles the drawing of the entire display"""
+		if self.done: return
+
+		self.time = time
+
+		self.screen.fill(BACKGROUND_COLOR)
+
+		self.draw_mic_pitch(mic_pitch)
+		self.draw_expected_pitch_bars()
+
+	def draw_mic_pitch(self, pitch):
+		"""Shows the pitch from the microphone with a marker"""
+
+		position = (pitch * PIXELS_PER_NOTE, BASE_LINE_Y)
+		color = MIC_PITCH_COLOR
+		radius = MIC_PITCH_RADIUS
+		pygame.draw.circle(self.screen, color, position, radius)
+
+	def draw_expected_pitch_bars(self):
+		ahead_time = self.time + BASE_LINE_Y / PIXELS_PER_SECOND
+
+		self.update_active_notes(ahead_time)
+
+		notes = self.current_notes
+		print(notes)
+		for note in notes:
+			start_time = note["start_time"]
+			end_time = note["end_time"]
+
+			x = note["note"] * PIXELS_PER_NOTE
+			y = (ahead_time - end_time) * PIXELS_PER_SECOND
+			width = PIXELS_PER_NOTE
+			height = (end_time - start_time) * PIXELS_PER_SECOND
+
+			rectangle = pygame.Rect(x, y, width, height)
+			pygame.draw.rect(self.screen, BAR_COLOR, rectangle)
+
+		for i in self.midway_notes:
+			note = self.midway_notes[i]
+
+			start_time = note["start_time"]
+			end_time = note["end_time"]
+
+			x = note["note"] * PIXELS_PER_NOTE
+			y = 0
+			width = PIXELS_PER_NOTE
+			height = (ahead_time - start_time) * PIXELS_PER_SECOND
+
+			rectangle = pygame.Rect(x, y, width, height)
+			pygame.draw.rect(self.screen, BAR_COLOR, rectangle)
+
+	def draw_note_references(self):
+		pass
+
+	def update_active_notes(self, ahead_time):
+		print(ahead_time, self.next_instruction["time_since_start"])
+		while ahead_time > self.next_instruction["time_since_start"]:
+			instruction = self.next_instruction
+
+			channel = instruction["channel"]
+			instruction_time = instruction["time_since_start"]
+
+			if instruction["type"] == "note_on":
+				if self.midway_notes.get(channel): 
+					self.midway_notes[channel]["end_time"] = instruction_time
+					self.current_notes.append(self.midway_notes[channel])
+				self.midway_notes[channel] = {
+					"note": instruction["note"],
+					"start_time": instruction_time,
+					"end_time": None
+				}
+
+			else:
+				print("note_off detected")
+				note = self.midway_notes[channel]
+
+				note["end_time"] = instruction_time
+				self.current_notes.append(note)
+
+			print("getting the next instruction")
+
+			try:
+				self.next_instruction = next(self.instructions)
+
+			except StopIteration:
+				self.done = True
+				print("End reached")
+				break
+
+

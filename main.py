@@ -1,9 +1,11 @@
 import pyaudio
 import numpy as np
 from src.pitch_detection import detect_pitch
-from src.display_content import Display
+from src.game_logic import Game
+from src.midi_parsing import MidiParser
 import aubio
 import pygame
+import time
 
 
 FORMAT = pyaudio.paFloat32
@@ -17,8 +19,6 @@ def main():
 	screen = pygame.display.set_mode(SIZE)
 	running = True
 
-	display = Display(screen)
-
 	# pyaudio initialization
 	pyaudio_object = pyaudio.PyAudio()
 	stream = pyaudio_object.open(
@@ -29,6 +29,11 @@ def main():
 		frames_per_buffer=FRAMES_PER_BUFFER
 		)
 
+	midi_instructions = MidiParser()
+	game = Game(screen, midi_instructions)
+
+	start_time = time.time()
+
 	while running:
 		# read the sound waves from the microphone
 		data = stream.read(FRAMES_PER_BUFFER)		
@@ -37,7 +42,7 @@ def main():
 
 		pitch = detect_pitch(audio_array, SAMPLE_RATE)
 
-		display.draw(pitch)
+		game.update(pitch, time.time() - start_time)
 		pygame.display.flip()
 
 		for event in pygame.event.get():
