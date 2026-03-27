@@ -1,5 +1,6 @@
 import pygame
 from src.midi_parsing import MidiParser
+from src.note_logic import Note
 
 
 BACKGROUND_COLOR = (0, 0, 0)
@@ -27,12 +28,13 @@ class Game:
 
 		self.instructions = instructions
 
-		self.current_notes = [] 
+		self.current_notes = set()
 		self.midway_notes = {} # notes that extend beyond the screen
 
 		self.midi_instructions = instructions
 		self.next_instruction = next(instructions)
 
+		self.pitch_error = 0
 		self.done = False
 
 	def update(self, mic_pitch, time):
@@ -45,7 +47,9 @@ class Game:
 		self.screen.fill(BACKGROUND_COLOR)
 
 		self.draw_mic_pitch(mic_pitch)
-		self.draw_expected_pitch_bars()
+		self.handle_notes(mic_pitch)
+
+		print(self.pitch_error)
 
 	def draw_mic_pitch(self, pitch):
 		"""Shows the pitch from the microphone with a marker"""
@@ -55,42 +59,50 @@ class Game:
 		radius = MIC_PITCH_RADIUS
 		pygame.draw.circle(self.screen, color, position, radius)
 
-	def draw_expected_pitch_bars(self):
-		"""Draws the note bars of the current and misway notes"""
+	def handle_notes(self, mic_note):
+		"""Handles the logic of the notes"""
 
+		current_time = self.time
 		ahead_time = self.time + BASE_LINE_Y / PIXELS_PER_SECOND
+
+		self.pitch_error = float("inf")
 
 		self.update_active_notes(ahead_time)
 
-		notes = self.current_notes
-
-		# iterate through the notes completely visible on screen 
-		for note in notes:
-			start_time = note["start_time"]
-			end_time = note["end_time"]
-
-			x = note["note"] * PIXELS_PER_NOTE
-			y = (ahead_time - end_time) * PIXELS_PER_SECOND
-			width = PIXELS_PER_NOTE
-			height = (end_time - start_time) * PIXELS_PER_SECOND
-
-			rectangle = pygame.Rect(x, y, width, height)
-			pygame.draw.rect(self.screen, BAR_COLOR, rectangle)
-
-		# iterate through the unfinished notes where the end is off screen 
+		# combines all finished and unfinished notes in one set
+		# I'm sure this is inefficient but I will leave it be for now
+		notes = self.current_notes.copy()
 		for i in self.midway_notes:
-			note = self.midway_notes[i]
+			notes.add(self.midway_notes[i])
 
-			start_time = note["start_time"]
-			end_time = note["end_time"]
+		for note in notes:
+			start_time = note.start_time
+			end_time = note.end_time
 
-			x = note["note"] * PIXELS_PER_NOTE
+			if start_time <= current_time <= end_time:
+				self.handle_playing_note(note, mic_note)
+				
+			self.draw_note_bar(note, ahead_time, start_time, end_time)
+
+	def draw_note_bar(self, note, ahead_time, start_time, end_time):
+		"""Draws the bar of a note"""
+
+		x = note.note * PIXELS_PER_NOTE
+		y = None
+		width = PIXELS_PER_NOTE
+		height = None
+		
+		# if note is finished
+		if end_time:
+			y = (ahead_time - end_time) * PIXELS_PER_SECOND
+			height = (end_time - start_time) * PIXELS_PER_SECOND
+		# if note is unfinished
+		else:
 			y = 0
-			width = PIXELS_PER_NOTE
 			height = (ahead_time - start_time) * PIXELS_PER_SECOND
 
-			rectangle = pygame.Rect(x, y, width, height)
-			pygame.draw.rect(self.screen, BAR_COLOR, rectangle)
+		rectangle = pygame.Rect(x, y, width, height)
+		pygame.draw.rect(self.screen, BAR_COLOR, rectangle)
 
 	def draw_note_references(self):
 		pass
@@ -129,11 +141,7 @@ class Game:
 			self.note_off(channel, instruction_time)
 
 		# adds the note to the unfinished notes
-		self.midway_notes[channel] = {
-			"note": note,
-			"start_time": instruction_time,
-			"end_time": None
-		}
+		self.midway_notes[channel] = Note(note, instruction_time)
 
 	def note_off(self, channel, instruction_time):
 		"""Handles the stop of a note"""
@@ -147,11 +155,16 @@ class Game:
 		note = self.midway_notes[channel]
 
 		# adds note to the finished notes
-		note["end_time"] = instruction_time
-		self.current_notes.append(note)
+		note.end_time = instruction_time
+		self.current_notes.add(note)
 
 		# removes note from the unfinished notes
 		del self.midway_notes[channel]
 
+	def handle_playing_note(self, note, mic_note):
+		error = note.get_error(mic_note)
+
+		if abs(error) < abs(self.pitch_error):
+			self.pitch_error = error
 
 
