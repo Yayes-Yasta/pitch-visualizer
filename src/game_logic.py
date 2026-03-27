@@ -49,8 +49,6 @@ class Game:
 		self.draw_mic_pitch(mic_pitch)
 		self.handle_notes(mic_pitch)
 
-		print(self.pitch_error)
-
 	def draw_mic_pitch(self, pitch):
 		"""Shows the pitch from the microphone with a marker"""
 
@@ -62,8 +60,9 @@ class Game:
 	def handle_notes(self, mic_note):
 		"""Handles the logic of the notes"""
 
-		current_time = self.time
-		ahead_time = self.time + BASE_LINE_Y / PIXELS_PER_SECOND
+		time = self.time
+		ahead_time = time + BASE_LINE_Y / PIXELS_PER_SECOND
+		behind_time = time - (self.height - BASE_LINE_Y) / PIXELS_PER_SECOND
 
 		self.pitch_error = float("inf")
 
@@ -79,8 +78,14 @@ class Game:
 			start_time = note.start_time
 			end_time = note.end_time
 
-			if start_time <= current_time <= end_time:
+			# for currently playing notes
+			if start_time <= time <= end_time:
 				self.handle_playing_note(note, mic_note)
+
+			# if note has left the screen, remove it from the note set
+			elif end_time and end_time < behind_time:
+				self.current_notes.remove(note)
+				print("note deleted", note.note, note.start_time)
 				
 			self.draw_note_bar(note, ahead_time, start_time, end_time)
 
