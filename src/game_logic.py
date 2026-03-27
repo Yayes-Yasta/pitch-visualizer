@@ -63,7 +63,6 @@ class Game:
 		self.update_active_notes(ahead_time)
 
 		notes = self.current_notes
-		print(notes)
 
 		# iterate through the notes completely visible on screen 
 		for note in notes:
@@ -100,7 +99,6 @@ class Game:
 		"""Fetches the next midi instructions if necessary 
 		and adds notes to active_notes and midway_notes"""
 
-		print(ahead_time, self.next_instruction["time_since_start"])
 		while ahead_time > self.next_instruction["time_since_start"]:
 			instruction = self.next_instruction
 
@@ -113,9 +111,9 @@ class Game:
 			else:
 				self.note_off(channel, instruction_time)
 
-			print("getting the next instruction")
-
+			# get the next instruction or stop if the song has ended
 			try:
+				print(self.next_instruction)
 				self.next_instruction = next(self.instructions)
 
 			except StopIteration:
@@ -140,7 +138,12 @@ class Game:
 	def note_off(self, channel, instruction_time):
 		"""Handles the stop of a note"""
 
-		print("note_off detected")
+		"""If multiple notes are played per channel, there might be an attempt 
+		to turn off a note that was already forced off by this program.
+		If that happens, ignore the note_off instruction"""
+		if not self.midway_notes.get(channel):
+			return
+
 		note = self.midway_notes[channel]
 
 		# adds note to the finished notes
