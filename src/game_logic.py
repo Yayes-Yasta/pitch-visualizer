@@ -12,6 +12,7 @@ MIC_PITCH_COLOR = (0, 0, 255)
 MIC_PITCH_RADIUS = 5
 
 BASE_LINE_Y = 650
+BASE_LINE_COLOR = (255, 255, 255)
 
 PIXELS_PER_NOTE = 10
 PIXELS_PER_SECOND = 100
@@ -19,11 +20,12 @@ PIXELS_PER_SECOND = 100
 class Game:
 	"""This class is used to handle the rhythm game logic"""
 
-	def __init__(self, screen, instructions):
+	def __init__(self, screen, instructions, font):
 		"""Takes in the  pygame display object and 
 		the midi instructions to be displayed on the screen"""
 
 		self.screen = screen
+		self.font = font
 		self.width, self.height = self.screen.get_size()
 
 		self.instructions = instructions
@@ -48,11 +50,13 @@ class Game:
 
 		self.draw_mic_pitch(mic_pitch)
 		self.handle_notes(mic_pitch)
+		self.draw_base_line()
+		self.show_error()
 
 	def draw_mic_pitch(self, pitch):
 		"""Shows the pitch from the microphone with a marker"""
 
-		position = (pitch * PIXELS_PER_NOTE, BASE_LINE_Y)
+		position = (pitch * PIXELS_PER_NOTE + MIC_PITCH_RADIUS, BASE_LINE_Y)
 		color = MIC_PITCH_COLOR
 		radius = MIC_PITCH_RADIUS
 		pygame.draw.circle(self.screen, color, position, radius)
@@ -80,7 +84,7 @@ class Game:
 
 			# for currently playing notes
 			if start_time <= time <= end_time:
-				self.handle_playing_note(note, mic_note)
+				self.update_error(note, mic_note)
 
 			# if note has left the screen, remove it from the note set
 			elif end_time and end_time < behind_time:
@@ -109,8 +113,12 @@ class Game:
 		rectangle = pygame.Rect(x, y, width, height)
 		pygame.draw.rect(self.screen, BAR_COLOR, rectangle)
 
-	def draw_note_references(self):
-		pass
+	def draw_base_line(self):
+		"""Draws the line that represents the current time"""
+
+		start_pos = (0, BASE_LINE_Y) 
+		end_pos = (self.width, BASE_LINE_Y)
+		pygame.draw.line(self.screen, BASE_LINE_COLOR, start_pos, end_pos)
 
 	def update_active_notes(self, ahead_time):
 		"""Fetches the next midi instructions if necessary 
@@ -166,10 +174,25 @@ class Game:
 		# removes note from the unfinished notes
 		del self.midway_notes[channel]
 
-	def handle_playing_note(self, note, mic_note):
+	def update_error(self, note, mic_note):
+		"""Updates the pitch error"""
+
 		error = note.get_error(mic_note)
 
 		if abs(error) < abs(self.pitch_error):
 			self.pitch_error = error
 
+	def show_error(self):
+		"""Displays the pitch error as text"""
+
+		error = self.pitch_error
+		
+		color = (255, 0, 0) if abs(error) > 0.5 else (0, 255, 0)
+
+		feedback = "+" if error > 0 else ""
+		feedback += str(error)
+
+		text = self.font.render(feedback, False, color)
+
+		self.screen.blit(text, (100, 100))
 

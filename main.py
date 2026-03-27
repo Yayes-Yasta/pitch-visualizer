@@ -16,6 +16,8 @@ SIZE = (1280, 720)
 def main():
 	# pygame initialization
 	pygame.init()
+	pygame.font.init()
+	font = pygame.font.SysFont("Comic Sans MS", 30)
 	screen = pygame.display.set_mode(SIZE)
 	running = True
 
@@ -30,7 +32,7 @@ def main():
 		)
 
 	midi_instructions = MidiParser()
-	game = Game(screen, midi_instructions)
+	game = Game(screen, midi_instructions, font)
 
 	start_time = time.time()
 
