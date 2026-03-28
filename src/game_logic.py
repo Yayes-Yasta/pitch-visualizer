@@ -1,4 +1,5 @@
 import pygame
+import pygame.midi
 from src.midi_parsing import MidiParser
 from src.note_logic import Note
 
@@ -42,15 +43,13 @@ class Game:
 	def update(self, mic_pitch, time):
 		"""Handles the drawing of the entire display"""
 
-		if self.done: return
-
 		self.time = time
 
 		self.screen.fill(BACKGROUND_COLOR)
 
-		self.draw_mic_pitch(mic_pitch)
 		self.handle_notes(mic_pitch)
 		self.draw_base_line()
+		self.draw_mic_pitch(mic_pitch)
 		self.show_error()
 
 	def draw_mic_pitch(self, pitch):
@@ -82,16 +81,20 @@ class Game:
 			start_time = note.start_time
 			end_time = note.end_time
 
+			self.draw_note_bar(note, ahead_time, start_time, end_time)
+
+			if self.done:
+				continue
+
 			# for currently playing notes
-			if start_time <= time <= end_time:
+			if (start_time <= time and not end_time) or start_time <= time <= end_time:
 				self.update_error(note, mic_note)
+				note.play(self.midi_instructions, time)
 
 			# if note has left the screen, remove it from the note set
 			elif end_time and end_time < behind_time:
 				self.current_notes.remove(note)
 				print("note deleted", note.note, note.start_time)
-				
-			self.draw_note_bar(note, ahead_time, start_time, end_time)
 
 	def draw_note_bar(self, note, ahead_time, start_time, end_time):
 		"""Draws the bar of a note"""
@@ -124,6 +127,9 @@ class Game:
 		"""Fetches the next midi instructions if necessary 
 		and adds notes to active_notes and midway_notes"""
 
+		if self.done:
+			return
+
 		while ahead_time > self.next_instruction["time_since_start"]:
 			instruction = self.next_instruction
 
@@ -138,7 +144,6 @@ class Game:
 
 			# get the next instruction or stop if the song has ended
 			try:
-				print(self.next_instruction)
 				self.next_instruction = next(self.instructions)
 
 			except StopIteration:
@@ -147,14 +152,17 @@ class Game:
 				break
 
 	def note_on(self, channel, instruction_time, note):
-		"""Handles the start of a note"""
+		"""Handles the start of a note 
+		(when it gets added to the screen but is not yet played)"""
 
 		# if the same channel is already playing a note, stop that note
 		if self.midway_notes.get(channel): 
 			self.note_off(channel, instruction_time)
 
+		note_object = Note(note, instruction_time)
+
 		# adds the note to the unfinished notes
-		self.midway_notes[channel] = Note(note, instruction_time)
+		self.midway_notes[channel] = note_object
 
 	def note_off(self, channel, instruction_time):
 		"""Handles the stop of a note"""
@@ -196,3 +204,5 @@ class Game:
 
 		self.screen.blit(text, (100, 100))
 
+	def play_note(self):
+		pass

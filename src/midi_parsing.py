@@ -1,8 +1,7 @@
 import mido
 
 
-PATH = "mario.midi"
-
+PATH = "sing.mid"
 class MidiParser:
 	"""This class is an iterator that reads a midi file 
 	and calculates the time at which instructions occur"""
@@ -13,6 +12,7 @@ class MidiParser:
 		messages = []
 		file = mido.MidiFile(PATH)
 		for msg in file:
+			print(msg)
 			messages.append(msg)
 
 		self.instructions = messages # queue representing all midi instructions
@@ -49,4 +49,21 @@ class MidiParser:
 
 	def add_time(self, time):
 		"""adds time to the total time elapsed"""
+
 		self.time += time
+
+	def look_for_end(self, note: int, current_time) -> int:
+		"""Returns the next note_off instruction of a note that will happen"""
+		
+		instructions = self.instructions
+
+		end_time = current_time
+
+		for instruction in instructions:
+			end_time += instruction.time
+
+			if instruction.type == "note_off" and instruction.note == note:
+				return time 
+
+		print("Error: Failed to find the end of the note")
+		return None
