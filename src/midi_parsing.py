@@ -1,16 +1,15 @@
 import mido
 
 
-PATH = "sing.mid"
 class MidiParser:
 	"""This class is an iterator that reads a midi file 
 	and calculates the time at which instructions occur"""
 
-	def __init__(self):
+	def __init__(self, file_path):
 		"""Prepares an array of all raw instructions parsed through mido."""
 
 		messages = []
-		file = mido.MidiFile(PATH)
+		file = mido.MidiFile(file_path)
 		for msg in file:
 			print(msg)
 			messages.append(msg)

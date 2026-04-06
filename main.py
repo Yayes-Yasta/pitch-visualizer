@@ -1,3 +1,4 @@
+import sys
 import pyaudio
 import numpy as np
 from src.pitch_detection import detect_pitch
@@ -14,8 +15,14 @@ FRAMES_PER_BUFFER = 2048 # number of frames per stream reading
 SIZE = (1280, 720)
 
 def main():
+	if len(sys.argv) != 2:
+		print("Usage: python main.py [midi file path]")
+		return
+	midi_file_name = sys.argv[1]
+
 	# pygame initialization
 	pygame.init()
+	pygame.mixer.init(channels=1)
 	pygame.font.init()
 	font = pygame.font.SysFont("Comic Sans MS", 30)
 	screen = pygame.display.set_mode(SIZE)
@@ -28,10 +35,11 @@ def main():
 		channels=1, 
 		rate=SAMPLE_RATE, 
 		input=True, 
-		frames_per_buffer=FRAMES_PER_BUFFER
+		frames_per_buffer=FRAMES_PER_BUFFER,
+		input_device_index=None
 		)
 
-	midi_instructions = MidiParser()
+	midi_instructions = MidiParser(midi_file_name)
 	game = Game(screen, midi_instructions, font)
 
 	start_time = time.time()
