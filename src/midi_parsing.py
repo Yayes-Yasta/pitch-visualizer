@@ -11,7 +11,6 @@ class MidiParser:
 		messages = []
 		file = mido.MidiFile(file_path)
 		for msg in file:
-			print(msg)
 			messages.append(msg)
 
 		self.instructions = messages # queue representing all midi instructions
@@ -62,7 +61,7 @@ class MidiParser:
 			end_time += instruction.time
 
 			if instruction.type == "note_off" and instruction.note == note:
-				return time 
+				return end_time 
 
 		print("Error: Failed to find the end of the note")
 		return None

@@ -83,8 +83,6 @@ class Game:
 
 			self.draw_note_bar(note, ahead_time, start_time, end_time)
 
-			if self.done:
-				continue
 
 			# for currently playing notes
 			if (start_time <= time and not end_time) or start_time <= time <= end_time:
@@ -94,7 +92,6 @@ class Game:
 			# if note has left the screen, remove it from the note set
 			elif end_time and end_time < behind_time:
 				self.current_notes.remove(note)
-				print("note deleted", note.note, note.start_time)
 
 	def draw_note_bar(self, note, ahead_time, start_time, end_time):
 		"""Draws the bar of a note"""

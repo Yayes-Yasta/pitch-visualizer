@@ -15,6 +15,9 @@ FRAMES_PER_BUFFER = 2048 # number of frames per stream reading
 SIZE = (1280, 720)
 
 def main():
+	"""This program takes a midi file as an output 
+	and produces a rhythm game according to it"""
+
 	if len(sys.argv) != 2:
 		print("Usage: python main.py [midi file path]")
 		return

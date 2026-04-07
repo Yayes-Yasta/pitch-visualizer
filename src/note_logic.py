@@ -2,6 +2,8 @@ import pygame
 import numpy as np
 
 
+PLAYBACK_ENABLED = True
+
 class Note:
 	"""Note objects represent every Note that should be played"""
 
@@ -24,6 +26,9 @@ class Note:
 	def play(self, parser, time):
 		"""Plays the note as audio"""
 
+		if not PLAYBACK_ENABLED:
+			return
+
 		if self.playing:
 			return
 
@@ -38,8 +43,6 @@ class Note:
 			end_time = parser.look_for_end(note, time)
 
 		duration = end_time - start_time # in seconds
-
-		print(pygame.mixer.get_init())
 
 		# set up sine wave for sound of note
 		bitrate = 44100 # Hz
@@ -63,8 +66,6 @@ class Note:
 		signal = np.repeat(signal, 2, axis=1)
 
 		signal = np.int16(signal * amplitude)
-
-		print(note, frequency)
 
 		sound = pygame.sndarray.make_sound(signal)
 		sound.play()
