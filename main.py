@@ -1,12 +1,14 @@
 import sys
+import time
+
 import pyaudio
 import numpy as np
+import aubio
+import pygame
+
 from src.pitch_detection import detect_pitch
 from src.game_logic import Game
 from src.midi_parsing import MidiParser
-import aubio
-import pygame
-import time
 
 
 FORMAT = pyaudio.paFloat32

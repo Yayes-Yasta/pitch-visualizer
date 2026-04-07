@@ -1,5 +1,6 @@
 import pygame
 import pygame.midi
+
 from src.midi_parsing import MidiParser
 from src.note_logic import Note
 
