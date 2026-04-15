@@ -55,7 +55,7 @@ def main():
 		# create the array to be used to process the audio
 		audio_array = np.frombuffer(data, dtype=np.float32)
 
-		pitch = detect_pitch(audio_array, SAMPLE_RATE)
+		pitch = detect_pitch(audio_array)
 
 		game.update(pitch, time.time() - start_time)
 		pygame.display.flip()

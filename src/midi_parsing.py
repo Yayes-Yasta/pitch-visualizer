@@ -1,4 +1,5 @@
 import mido
+from collections import deque
 
 
 class MidiParser:
@@ -8,7 +9,7 @@ class MidiParser:
     def __init__(self, file_path):
         """Prepares an array of all raw instructions parsed through mido."""
 
-        messages = []
+        messages = deque([])
         file = mido.MidiFile(file_path)
         for msg in file:
             messages.append(msg)
@@ -24,7 +25,7 @@ class MidiParser:
     def __next__(self):
         """Returns needed information about the next instruction"""
 
-        instruction = self.instructions.pop(0)
+        instruction = self.instructions.popleft()
 
         if instruction.type == "end_of_track":
             raise StopIteration
@@ -34,7 +35,7 @@ class MidiParser:
             if instruction.type == "end_of_track":
                 raise StopIteration
 
-            instruction = self.instructions.pop(0)
+            instruction = self.instructions.popleft()
 
         self.add_time(instruction.time)
         

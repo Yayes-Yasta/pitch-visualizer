@@ -4,13 +4,14 @@ import numpy as np
 
 PITCH_TOLERANCE = 0.7 # minimum confidence for pitch candidates
 HOP_SIZE = 512 # number of samples for each pitch calculation
+SAMPLE_RATE = 44100 # Hz
 
 # create aubio.pitch object
-pitch_o = aubio.pitch("yin", hop_size=HOP_SIZE, samplerate=sample_rate)
+pitch_o = aubio.pitch("yin", hop_size=HOP_SIZE, samplerate=SAMPLE_RATE)
 pitch_o.set_tolerance(PITCH_TOLERANCE)
 pitch_o.set_unit("midi")
 
-def detect_pitch(audio_array, sample_rate):
+def detect_pitch(audio_array):
 	"""Estimates and returns the pitch of a raw audio_array"""
 
 	# pad end of array with zeroes to make the length a multiple of hop_size
