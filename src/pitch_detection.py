@@ -26,6 +26,6 @@ def detect_pitch(audio_array, sample_rate):
 	pitch_profile = np.empty(frame_count) 
 
 	for frame, i in zip(frame_array, range(frame_count)):
-	    pitch_profile[i] = pitch_o(frame) # calculate the pitch
+	    pitch_profile[i] = pitch_o(frame)[0] # calculate the pitch
 
 	return np.median(pitch_profile)

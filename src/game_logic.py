@@ -201,6 +201,3 @@ class Game:
 		text = self.font.render(feedback, False, color)
 
 		self.screen.blit(text, (100, 100))
-
-	def play_note(self):
-		pass
