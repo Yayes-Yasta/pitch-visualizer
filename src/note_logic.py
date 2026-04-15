@@ -54,8 +54,8 @@ class Note:
 		signal = np.sin(2 * np.pi * frequency * time_values)
 		
 		# ease the starts and ends of each note by making start and end quiet
-		attack = min(int(0.01 * bitrate), len(signal) // 2)
-		release = min(int(0.01 * bitrate), len(signal) // 2)
+		attack = min(int(0.11 * bitrate), len(signal) // 2)
+		release = min(int(0.11 * bitrate), len(signal) // 2)
 		envelope = np.ones_like(signal)
 		envelope[:attack] = np.linspace(0, 1, attack)
 		envelope[-release:] = np.linspace(1, 0, release)
